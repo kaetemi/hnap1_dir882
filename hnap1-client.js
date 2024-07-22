@@ -1,6 +1,11 @@
 const axios = require('axios');
 const crypto = require('crypto');
 const xml2js = require('xml2js');
+
+// This MD5 implementation is required for compatibility.
+// Standard Node.js crypto functions produce different results,
+// likely due to variations in input processing or HMAC construction.
+// Router expects this specific HMAC-MD5 implementation.
 const hex_hmac_md5 = require('./md5').hex_hmac_md5;
 
 /**
