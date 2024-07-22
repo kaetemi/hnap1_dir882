@@ -1,12 +1,8 @@
+/* hnap-client.js */
+
 const axios = require('axios');
 const crypto = require('crypto');
 const xml2js = require('xml2js');
-
-// This MD5 implementation is required for compatibility.
-// Standard Node.js crypto functions produce different results,
-// likely due to variations in input processing or HMAC construction.
-// Router expects this specific HMAC-MD5 implementation.
-const hex_hmac_md5 = require('./md5').hex_hmac_md5;
 
 /**
  * HNAP1Client class for interacting with D-Link DIR-882 routers using the HNAP1 protocol.
@@ -93,7 +89,9 @@ class HNAP1Client {
    * @returns {string} The generated private key.
    */
   generatePrivateKey() {
-    return hex_hmac_md5(this.publicKey + this.password, this.challenge).toUpperCase();
+    const hmac = crypto.createHmac('md5', this.publicKey + this.password);
+    hmac.update(this.challenge);
+    return hmac.digest('hex').toUpperCase();
   }
 
   /**
@@ -101,7 +99,9 @@ class HNAP1Client {
    * @returns {string} The hashed login password.
    */
   generateLoginPassword() {
-      return hex_hmac_md5(this.privateKey, this.challenge).toUpperCase();
+    const hmac = crypto.createHmac('md5', this.privateKey);
+    hmac.update(this.challenge);
+    return hmac.digest('hex').toUpperCase();
   }
 
   /**
@@ -111,7 +111,9 @@ class HNAP1Client {
    */
   generateHnapAuth(soapAction) {
     const timestamp = this.getUniqueTimestamp();
-    const auth = hex_hmac_md5(this.privateKey, timestamp + soapAction).toUpperCase();
+    const hmac = crypto.createHmac('md5', this.privateKey);
+    hmac.update(timestamp + soapAction);
+    const auth = hmac.digest('hex').toUpperCase();
     return `${auth} ${timestamp}`;
   }
 
